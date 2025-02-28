@@ -1,0 +1,7 @@
+[user]
+	email = ogcodinggod@gmail.com
+	name = aritroCoder
+[credential]
+	helper = store
+[init]
+	defaultBranch = main

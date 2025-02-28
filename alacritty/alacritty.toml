@@ -1,0 +1,42 @@
+import = ["/home/fishnak/.config/alacritty/catppuccin-mocha.toml"]
+
+[cursor.style]
+blinking = "Off"
+shape = "Beam"
+
+[font]
+# draw_bold_text_with_bright_colors = true
+size = 13
+
+[font.bold]
+family = "JetBrains Mono Nerd Font"
+style = "Bold"
+
+[font.bold_italic]
+family = "JetBrains Mono Nerd Font"
+style = "BoldItalic"
+
+[font.italic]
+family = "JetBrains Mono Nerd Font"
+style = "MediumItalic"
+
+[font.normal]
+family = "JetBrains Mono Nerd Font"
+style = "Medium"
+
+[[keyboard.bindings]]
+action = "SpawnNewInstance"
+key = "Return"
+mods = "Super|Shift"
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[window.class]
+general = "Alacritty"
+instance = "Alacritty"
+
+[window.padding]
+x = 5
+y = 5
