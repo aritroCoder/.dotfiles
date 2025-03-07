@@ -18,6 +18,7 @@ nvim --version
 
 echo "getting jetbrains mono nerd font..."
 cd $WORK
+sudo apt install unzip
 bash getNerdFont.sh
 
 echo "Setting up symlinks..."
