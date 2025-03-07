@@ -1,46 +1,113 @@
 WORK=$PWD
-echo "remove old versions of nvim"
-sudo apt-get remove -y --purge neovim
-sudo apt-get remove -y --purge neovim-qt
-sudo apt-get remove -y --purge python3-neovim
-sudo apt-get remove -y --purge python-neovim
 
-echo "Install neovim >= 0.9.0"
-wget https://github.com/neovim/neovim/releases/download/stable/nvim-linux64.tar.gz
-mkdir -p ~/.local/bin
-mv nvim-linux64.tar.gz ~/.local/bin
-cd ~/.local/bin
-tar -xzvf nvim-linux64.tar.gz
-rm -fr nvim-linux64.tar.gz
-ln -s ./nvim-linux64/bin/nvim ./nvim
-echo "Done installing neovim."
-nvim --version
+# Add formatting variables at the top
+BOLD="\033[1m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+RED="\033[0;31m"
+RESET="\033[0m"
+LINE="======================================"
 
-echo "getting jetbrains mono nerd font..."
-cd $WORK
-sudo apt install unzip
-bash getNerdFont.sh
+# Function to ask for confirmation
+confirm() {
+    echo -e "${BOLD}${YELLOW}Do you want to $1? [y/N]${RESET}"
+    read -r response
+    case "$response" in
+        [yY][eE][sS]|[yY]) 
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
 
-echo "Setting up symlinks..."
-ln -s ~/.dotfiles/.bashrc ~/.bashrc
-ln -s ~/.dotfiles/.gitconfig ~/.gitconfig
-ln -s ~/.dotfiles/.git-credentials ~/.git-credentials
-ln -s ~/.dotfiles/alacritty/ ~/.config/alacritty
-ln -s ~/.dotfiles/nvim/ ~/.config/nvim
-ln -s ~/.dotfiles/tmux/ ~/.config/tmux
-ln -s ~/.dotfiles/kitty/ ~/.config/kitty
-ln -s ~/.dotfiles/.ssh/ ~/.ssh
-echo "Done creating symlinks."
+# Removing old versions of nvim
+if confirm "remove old versions of nvim"; then
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    echo -e "${BOLD}${GREEN}Removing old versions of nvim${RESET}"
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    sudo apt-get remove -y --purge neovim
+    sudo apt-get remove -y --purge neovim-qt
+    sudo apt-get remove -y --purge python3-neovim
+    sudo apt-get remove -y --purge python-neovim
+else
+    echo -e "${BOLD}${RED}Skipping removal of old nvim versions${RESET}"
+fi
 
-echo "Installing alacritty..."
-sudo apt update && sudo apt upgrade
-sudo add-apt-repository ppa:aslatter/ppa -y
-sudo apt install alacritty -y
-echo "Done installing alacritty."
+# Installing neovim
+if confirm "install neovim"; then
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    echo -e "${BOLD}${GREEN}Installing neovim >= 0.9.0${RESET}"
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    wget https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz
+    mkdir -p ~/.local/bin
+    mv nvim-linux-x86_64.tar.gz ~/.local/bin
+    cd ~/.local/bin
+    tar -xzvf nvim-linux-x86_64.tar.gz
+    rm -fr nvim-linux-x86_64.tar.gz
+    ln -s ./nvim-linux64/bin/nvim ./nvim
+    echo -e "${BOLD}${GREEN}Done installing neovim.${RESET}"
+    nvim --version
+else
+    echo -e "${BOLD}${RED}Skipping neovim installation${RESET}"
+fi
 
-echo "Installing tmux..."
-sudo apt install tmux -y
-echo "Done installing tmux."
+# Getting JetBrains Mono Nerd Font
+if confirm "install JetBrains Mono Nerd Font"; then
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    echo -e "${BOLD}${GREEN}Getting JetBrains Mono Nerd Font...${RESET}"
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    cd $WORK
+    sudo apt install unzip
+    bash getNerdFont.sh
+else
+    echo -e "${BOLD}${RED}Skipping Nerd Font installation${RESET}"
+fi
 
-echo "All Done :)"
-echo "Start hacking now!"
+# Setting up symlinks
+if confirm "set up symlinks"; then
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    echo -e "${BOLD}${GREEN}Setting up symlinks...${RESET}"
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    ln -s ~/.dotfiles/.bashrc ~/.bashrc
+    ln -s ~/.dotfiles/.gitconfig ~/.gitconfig
+    ln -s ~/.dotfiles/.git-credentials ~/.git-credentials
+    ln -s ~/.dotfiles/alacritty/ ~/.config/alacritty
+    ln -s ~/.dotfiles/nvim/ ~/.config/nvim
+    ln -s ~/.dotfiles/tmux/ ~/.config/tmux
+    ln -s ~/.dotfiles/kitty/ ~/.config/kitty
+    ln -s ~/.dotfiles/.ssh/ ~/.ssh
+    echo -e "${BOLD}${GREEN}Done creating symlinks.${RESET}"
+else
+    echo -e "${BOLD}${RED}Skipping symlink creation${RESET}"
+fi
+
+# Installing alacritty
+if confirm "install alacritty"; then
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    echo -e "${BOLD}${GREEN}Installing alacritty...${RESET}"
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    sudo apt update && sudo apt upgrade
+    sudo add-apt-repository ppa:aslatter/ppa -y
+    sudo apt install alacritty -y
+    echo -e "${BOLD}${GREEN}Done installing alacritty.${RESET}"
+else
+    echo -e "${BOLD}${RED}Skipping alacritty installation${RESET}"
+fi
+
+# Installing tmux
+if confirm "install tmux"; then
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    echo -e "${BOLD}${GREEN}Installing tmux...${RESET}"
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    sudo apt install tmux -y
+    echo -e "${BOLD}${GREEN}Done installing tmux.${RESET}"
+else
+    echo -e "${BOLD}${RED}Skipping tmux installation${RESET}"
+fi
+
+echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+echo -e "${BOLD}${GREEN}All Done :)${RESET}"
+echo -e "${BOLD}${GREEN}Start hacking now!${RESET}"
+echo -e "${BOLD}${GREEN}${LINE}${RESET}"
