@@ -31,6 +31,9 @@ if confirm "remove old versions of nvim"; then
     sudo apt-get remove -y --purge neovim-qt
     sudo apt-get remove -y --purge python3-neovim
     sudo apt-get remove -y --purge python-neovim
+    cd ~/.local/bin
+    rm -fr nvim
+    cd $WORK
 else
     echo -e "${BOLD}${RED}Skipping removal of old nvim versions${RESET}"
 fi
@@ -44,10 +47,12 @@ if confirm "install neovim"; then
     mkdir -p ~/.local/bin
     mv nvim-linux-x86_64.tar.gz ~/.local/bin
     cd ~/.local/bin
+    rm -fr nvim
     tar -xzvf nvim-linux-x86_64.tar.gz
     rm -fr nvim-linux-x86_64.tar.gz
-    ln -s ./nvim-linux64/bin/nvim ./nvim
+    ln -s ./nvim-linux-x86_64/bin/nvim ./nvim
     echo -e "${BOLD}${GREEN}Done installing neovim.${RESET}"
+    source ~/.bashrc
     nvim --version
 else
     echo -e "${BOLD}${RED}Skipping neovim installation${RESET}"
@@ -65,8 +70,71 @@ else
     echo -e "${BOLD}${RED}Skipping Nerd Font installation${RESET}"
 fi
 
+# Installing node version manager
+if confirm "install nvm"; then
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    echo -e "${BOLD}${GREEN}Installing nvm...${RESET}"
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+    source ~/.bashrc
+    nvm --version
+    echo -e "${BOLD}${GREEN}Done installing nvm.${RESET}"
+    nvm install node --lts
+    echo -e "${BOLD}${GREEN}Done installing node.${RESET}"
+    corepack enable
+    yarn -v
+    echo -e "${BOLD}${GREEN}Done enabling corepack.${RESET}"
+else
+    echo -e "${BOLD}${RED}Skipping nvm installation${RESET}"
+fi
+
+# Installing python using conda
+if confirm "install conda"; then
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    echo -e "${BOLD}${GREEN}Installing conda...${RESET}"
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    mkdir -p ~/miniconda3
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+    bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+    rm ~/miniconda3/miniconda.sh
+    source ~/miniconda3/bin/activate
+    conda init --all
+    python --version
+    echo -e "${BOLD}${GREEN}Done installing conda.${RESET}"
+else
+    echo -e "${BOLD}${RED}Skipping conda installation${RESET}"
+fi
+
+# Installing rust
+if confirm "install rust"; then
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    echo -e "${BOLD}${GREEN}Installing rust...${RESET}"
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    source ~/.bashrc
+    echo -e "${BOLD}${GREEN}Done installing rust.${RESET}"
+else
+    echo -e "${BOLD}${RED}Skipping rust installation${RESET}"
+fi
+
 # Setting up symlinks
 if confirm "set up symlinks"; then
+    echo -e "${BOLD}${GREEN}Cleaning up old symlinks...${RESET}"
+    echo "Check if config directory exists"
+    if [ -d ~/.config ]; then
+        echo "Config directory exists"
+    else
+        echo "Config directory does not exist"
+        mkdir ~/.config
+    fi
+    rm -f ~/.bashrc
+    rm -f ~/.gitconfig
+    rm -f ~/.git-credentials
+    rm -f ~/.config/alacritty
+    rm -f ~/.config/nvim
+    rm -f ~/.config/tmux
+    rm -f ~/.config/kitty
+    rm -f ~/.ssh
     echo -e "${BOLD}${GREEN}${LINE}${RESET}"
     echo -e "${BOLD}${GREEN}Setting up symlinks...${RESET}"
     echo -e "${BOLD}${GREEN}${LINE}${RESET}"
