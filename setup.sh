@@ -22,6 +22,22 @@ confirm() {
     esac
 }
 
+# Install build essentials
+if confirm "install build essentials (C/C++)"; then
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    echo -e "${BOLD}${GREEN}Installing build essentials...${RESET}"
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    sudo apt update
+    sudo apt install build-essential -y
+    source ~/.bashrc
+    gcc --version
+    g++ --version
+    make --version
+    echo -e "${BOLD}${GREEN}Done installing build essentials.${RESET}"
+else
+    echo -e "${BOLD}${RED}Skipping build essentials installation${RESET}"
+fi
+
 # Removing old versions of nvim
 if confirm "remove old versions of nvim"; then
     echo -e "${BOLD}${GREEN}${LINE}${RESET}"
