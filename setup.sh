@@ -187,6 +187,7 @@ if confirm "install tmux"; then
     echo -e "${BOLD}${GREEN}${LINE}${RESET}"
     sudo apt install tmux -y
     echo -e "${BOLD}${GREEN}Done installing tmux.${RESET}"
+    echo -e "${BOLD}${GREEN}Visit https://github.com/tmux-plugins/tpm to install tmux plugins.${RESET}"
 else
     echo -e "${BOLD}${RED}Skipping tmux installation${RESET}"
 fi
