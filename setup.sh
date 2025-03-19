@@ -13,7 +13,7 @@ confirm() {
     echo -e "${BOLD}${YELLOW}Do you want to $1? [y/N]${RESET}"
     read -r response
     case "$response" in
-        [yY][eE][sS]|[yY]) 
+        [yY][eE][sS]|[yY])
             return 0
             ;;
         *)
@@ -190,6 +190,19 @@ if confirm "install tmux"; then
     echo -e "${BOLD}${GREEN}Visit https://github.com/tmux-plugins/tpm to install tmux plugins.${RESET}"
 else
     echo -e "${BOLD}${RED}Skipping tmux installation${RESET}"
+fi
+
+# Installing zoxide
+if confirm "install zoxide and fzf"; then
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    echo -e "${BOLD}${GREEN}Installing zoxide...${RESET}"
+    echo -e "${BOLD}${GREEN}${LINE}${RESET}"
+    curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+    echo -e "${BOLD}${GREEN}Done installing zoxide.${RESET}"
+    sudo apt install fzf
+    echo -e "${BOLD}${GREEN}Done installing fzf.${RESET}"
+else
+    echo -e "${BOLD}${RED}Skipping zoxide installation${RESET}"
 fi
 
 echo -e "${BOLD}${GREEN}${LINE}${RESET}"
