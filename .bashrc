@@ -143,4 +143,4 @@ else
 fi
 unset __conda_setup
 
-eval "$(zoxide init bash)"
+eval "$(zoxide init --cmd cd bash)"
