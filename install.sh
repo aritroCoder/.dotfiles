@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NVIM_FALLBACK_VERSION="0.10.4"
@@ -688,27 +687,48 @@ install_opencode() {
     fi
 }
 
+run_install() {
+    local name="$1"
+    local func="$2"
+    
+    if ! $func; then
+        log_error "$name failed"
+        FAILED_COMPONENTS+=("$name")
+        return 1
+    fi
+    return 0
+}
+
 main() {
+    FAILED_COMPONENTS=()
+    
     collect_choices
     
-    [[ "$INSTALL_TOOLS" == "true" ]] && { log_section "Platform-specific packages"; install_tools; }
-    [[ "$INSTALL_NEOVIM" == "true" ]] && { log_section "Neovim"; install_neovim; }
-    [[ "$INSTALL_FONTS" == "true" ]] && { log_section "Fonts"; install_fonts; }
+    [[ "$INSTALL_TOOLS" == "true" ]] && { log_section "Platform-specific packages"; run_install "Tools" install_tools; }
+    [[ "$INSTALL_NEOVIM" == "true" ]] && { log_section "Neovim"; run_install "Neovim" install_neovim; }
+    [[ "$INSTALL_FONTS" == "true" ]] && { log_section "Fonts"; run_install "Fonts" install_fonts; }
     [[ "$INSTALL_NODE" == "true" || "$INSTALL_RUST" == "true" ]] && log_section "Development Tools"
-    install_node
-    install_rust
-    [[ "$CREATE_SYMLINKS" == "true" ]] && { log_section "Symlinks"; create_symlinks; }
-    [[ "$CONFIGURE_GIT" == "true" ]] && { log_section "Git Configuration"; configure_git; }
-    [[ "$INSTALL_TPM" == "true" ]] && { log_section "Tmux"; install_tpm; }
-    [[ "$INSTALL_GHOSTTY" == "true" ]] && { log_section "Terminal"; install_ghostty; }
-    [[ "$INSTALL_UV" == "true" ]] && { log_section "Python Tools"; install_uv; }
-    [[ "$INSTALL_DOCKER" == "true" ]] && { log_section "Containers"; install_docker; }
-    [[ "$INSTALL_OPENCODE" == "true" ]] && { log_section "AI Tools"; install_opencode; }
+    [[ "$INSTALL_NODE" == "true" ]] && run_install "Node.js" install_node
+    [[ "$INSTALL_RUST" == "true" ]] && run_install "Rust" install_rust
+    [[ "$CREATE_SYMLINKS" == "true" ]] && { log_section "Symlinks"; run_install "Symlinks" create_symlinks; }
+    [[ "$CONFIGURE_GIT" == "true" ]] && { log_section "Git Configuration"; run_install "Git config" configure_git; }
+    [[ "$INSTALL_TPM" == "true" ]] && { log_section "Tmux"; run_install "TPM" install_tpm; }
+    [[ "$INSTALL_GHOSTTY" == "true" ]] && { log_section "Terminal"; run_install "Ghostty" install_ghostty; }
+    [[ "$INSTALL_UV" == "true" ]] && { log_section "Python Tools"; run_install "uv" install_uv; }
+    [[ "$INSTALL_DOCKER" == "true" ]] && { log_section "Containers"; run_install "Docker" install_docker; }
+    [[ "$INSTALL_OPENCODE" == "true" ]] && { log_section "AI Tools"; run_install "OpenCode" install_opencode; }
     
     [[ "$CONFIGURE_GIT" == "true" ]] && show_ssh_instructions
     
     log_section "Installation Complete"
-    log_success "Dotfiles installed successfully!"
+    
+    if [[ ${#FAILED_COMPONENTS[@]} -gt 0 ]]; then
+        log_warn "Some components failed to install: ${FAILED_COMPONENTS[*]}"
+        log_info "You can try installing them manually later."
+        echo ""
+    fi
+    
+    log_success "Dotfiles installation finished!"
     echo ""
     log_info "Next steps:"
     echo "  1. Restart your shell or run: source ~/.bashrc  # or ~/.zshrc"
