@@ -1,6 +1,6 @@
 local ts_parsers = require "nvim-treesitter.parsers"
 local options = {
-    ensure_installed = { "lua", "bash", "tmux", "yaml" },
+    ensure_installed = { "lua", "bash", "yaml" },
     highlight = {
         enable = true,
         disable = function(lang, buf)

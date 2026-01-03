@@ -1,94 +1,86 @@
 # AGENTS.md - Dotfiles Repository Guide
 
-## ⚠️ CRITICAL: Run Tests After Every Change
+**Generated:** 2026-01-03 | **Branch:** main
 
-```bash
-# Full test (both platforms must pass before committing)
-docker build -t dotfiles-deb -f Dockerfile.deb . && docker run --rm dotfiles-deb /root/.dotfiles/test-install.sh
-docker build -t dotfiles-fedora -f Dockerfile.fedora . && docker run --rm dotfiles-fedora /root/.dotfiles/test-install.sh
+## OVERVIEW
 
-# Quick verification
-docker run --rm dotfiles-deb /root/.dotfiles/test-install.sh 2>&1 | grep -E "(PASSED|FAILED|ALL TESTS)"
-```
+Cross-platform dev environment bootstrapper for macOS, Linux (Debian/Fedora/Arch), and WSL. Single installer deploys shell, Neovim, tmux, terminals, and dev tools.
 
-## Repository Structure
+## STRUCTURE
 
 ```
 .dotfiles/
-├── install.sh          # Cross-platform installer (main entry point)
-├── test-install.sh     # Docker test suite
-├── shell/common.sh     # Shared shell config (sourced by .bashrc/.zshrc)
-├── .bashrc / .zshrc    # Shell configs (Linux/macOS)
-├── nvim/               # Neovim config (NvChad-based, lazy.nvim)
-├── tmux/               # tmux config with TPM
-├── alacritty/          # Alacritty terminal config
-├── ghostty/            # Ghostty terminal config
-├── opencode/           # OpenCode AI config
-└── Dockerfile.*        # Test containers (deb, fedora)
+├── install.sh              # Interactive installer (741 lines, main entry)
+├── test-install.sh         # Docker test suite
+├── shell/common.sh         # Shared shell config (sourced by both .bashrc/.zshrc)
+├── .bashrc / .zshrc        # Shell-specific wrappers
+├── nvim/                   # NvChad-based Neovim (see nvim/AGENTS.md)
+├── tmux/tmux.conf          # TPM-managed plugins
+├── alacritty/              # Catppuccin-themed terminal
+├── ghostty/                # Catppuccin-themed terminal
+├── opencode/               # OpenCode AI config
+├── git/ignore              # Global gitignore
+└── Dockerfile.{deb,fedora} # Test containers
 ```
 
-## Build/Lint/Test Commands
+## WHERE TO LOOK
 
-### Shell Scripts
+| Task | Location | Notes |
+|------|----------|-------|
+| Add install component | `install.sh` → `install_<tool>()` + `collect_choices()` | Follow template below |
+| Shell aliases/functions | `shell/common.sh` | Shared across bash/zsh |
+| Neovim plugins | `nvim/lua/custom/plugins.lua` | Lazy.nvim specs |
+| Neovim keybindings | `nvim/lua/custom/mappings.lua` | Overrides core mappings |
+| tmux config | `tmux/tmux.conf` | Prefix: C-b |
+| Test changes | `docker build -t dotfiles-deb -f Dockerfile.deb .` | Both platforms required |
+
+## CRITICAL: RUN TESTS
+
 ```bash
-bash -n install.sh                    # Syntax check (always run before commit)
-bash -n shell/common.sh
-shellcheck install.sh shell/common.sh # Lint (if available)
+# BOTH must pass before commit
+docker build -t dotfiles-deb -f Dockerfile.deb . && docker run --rm dotfiles-deb /root/.dotfiles/test-install.sh
+docker build -t dotfiles-fedora -f Dockerfile.fedora . && docker run --rm dotfiles-fedora /root/.dotfiles/test-install.sh
+
+# Quick check
+docker run --rm dotfiles-deb /root/.dotfiles/test-install.sh 2>&1 | grep -E "(PASSED|FAILED|ALL TESTS)"
 ```
 
-### Lua (Neovim)
-```bash
-stylua nvim/                          # Format (config: nvim/.stylua.toml)
-luacheck nvim/lua/ --no-unused-args   # Lint
-```
-
-### Single Test Run
-```bash
-docker run --rm dotfiles-deb bash -c "source /root/.dotfiles/install.sh && install_neovim_tarball '0.10.4'"
-```
-
-## Code Style
+## CODE STYLE
 
 ### Bash
 
-**Header:** `#!/bin/bash` + `set -e`
-
-**Naming:**
-- Functions: `snake_case` → `install_neovim`, `detect_platform`
-- Globals: `UPPER_SNAKE` → `PLATFORM`, `DOTFILES_DIR`
-- Locals: `lower_snake` with `local` keyword
-
-**Formatting:**
-- Indent: 4 spaces
-- Conditionals: `[[ ]]` not `[ ]`
-- Variables: always quote `"$var"`
-
-**Logging:**
 ```bash
-log_info "..."     # Blue [INFO]
-log_success "..."  # Green [OK]
-log_warn "..."     # Yellow [WARN]
-log_error "..."    # Red [ERROR]
-log_section "..."  # Section header
+#!/bin/bash
+set -e
+
+# Functions: snake_case
+install_mytool() {
+    local version="$1"                    # Locals: lower_snake with 'local'
+    
+    command -v mytool &>/dev/null && { log_info "Already installed"; return 0; }
+    
+    case "$PLATFORM" in                   # PLATFORM/ARCH are globals
+        macos) brew install mytool ;;
+        linux|wsl)
+            [[ -f /etc/debian_version ]] && sudo apt install -y mytool
+            [[ -f /etc/fedora-release ]] && sudo dnf install -y mytool
+            ;;
+    esac
+    log_success "mytool installed"
+}
 ```
 
-**User Input:**
-```bash
-if confirm "Install X?"; then ...    # Auto-detects gum
-value=$(prompt_input "Enter name" "default")
-```
-
-**Error Handling:**
-```bash
-command -v tool &>/dev/null && tool --version  # Check before use
-some_command || log_error "Failed"             # Fallback on error
-```
+**Naming:** Functions `snake_case`, Globals `UPPER_SNAKE`, Locals `lower_snake`  
+**Formatting:** 4 spaces, `[[ ]]` conditionals, always quote `"$var"`  
+**Logging:** `log_info`, `log_success`, `log_warn`, `log_error`, `log_section`  
+**Input:** `confirm "Prompt?"`, `prompt_input "Prompt" "default"`
 
 ### Lua (Neovim)
 
-**Style:** 4 spaces, 120 char width, double quotes, Unix line endings
+**Style:** 4 spaces, 120 char width, double quotes, Unix endings  
+**Format:** `stylua nvim/` (config: `nvim/.stylua.toml`)  
+**Lint:** `luacheck nvim/lua/ --no-unused-args`
 
-**Module Pattern:**
 ```lua
 local M = {}
 M.setup = function()
@@ -97,68 +89,46 @@ end
 return M
 ```
 
-**Imports:** `local utils = require "core.utils"`
-
-## Platform Handling
-
-Supports: **macOS**, **Linux** (Debian, Fedora, Arch), **WSL**
+## PLATFORM HANDLING
 
 ```bash
+PLATFORM="$(detect_platform)"  # macos | linux | wsl
+ARCH="$(uname -m)"             # x86_64 | arm64 | aarch64
+
 case "$PLATFORM" in
     macos)      # Homebrew
         ;;
     linux|wsl)  # apt/dnf/pacman
-        if [[ -f /etc/debian_version ]]; then
-            sudo apt install -y pkg
-        elif [[ -f /etc/fedora-release ]]; then
-            sudo dnf install -y pkg
-        fi
+        [[ -f /etc/debian_version ]] && ...
+        [[ -f /etc/fedora-release ]] && ...
+        [[ -f /etc/arch-release ]] && ...
         ;;
 esac
 ```
 
-Architecture: `$ARCH` → `x86_64` or `arm64/aarch64`
+## ANTI-PATTERNS
 
-## Adding New Features
+| Forbidden | Why |
+|-----------|-----|
+| Hardcoded paths | Use `$DOTFILES_DIR` |
+| Skip Docker tests | Both Debian + Fedora must pass |
+| Commit secrets | Never: SSH keys, tokens, `.git-credentials`, `gcloud/`, `github-copilot/` |
+| Direct `.gitconfig` edit | Generated by `configure_git()`, not symlinked |
+
+## GOTCHAS
+
+1. **Non-interactive shells:** `.bashrc` exits early; source `common.sh` directly for testing
+2. **ARM64 Docker:** Arch image unsupported on Apple Silicon; test Debian/Fedora only
+3. **Plugin managers:** TPM (`prefix + I`), lazy.nvim (auto on nvim start)
+4. **Neovim tarball:** Installed from GitHub releases, not package manager
+5. **Git config:** Dynamically generated, stores user-specific name/email
+
+## ADDING NEW FEATURES
 
 1. Create `install_<feature>()` function in `install.sh`
-2. Add to `main()` under appropriate `log_section`
-3. Handle all platforms (brew/apt/dnf/pacman)
-4. Check if already installed before installing
-5. Run Docker tests on both Debian and Fedora
-
-**Template:**
-```bash
-install_mytool() {
-    if confirm "Install mytool?"; then
-        command -v mytool &>/dev/null && { log_info "Already installed"; return 0; }
-        case "$PLATFORM" in
-            macos) brew install mytool ;;
-            linux|wsl)
-                [[ -f /etc/debian_version ]] && sudo apt install -y mytool
-                [[ -f /etc/fedora-release ]] && sudo dnf install -y mytool
-                ;;
-        esac
-        log_success "mytool installed"
-    fi
-}
-```
-
-## Security
-
-**Never commit:** Private SSH keys, API tokens, `.git-credentials`, `gcloud/`, `github-copilot/`
-
-**Safe:** Public keys (`*.pub`), config files without secrets
-
-## Gotchas
-
-1. **Non-interactive shells:** `.bashrc` exits early; test by sourcing `common.sh` directly
-2. **ARM64 Docker:** Arch image doesn't support Apple Silicon; test on Debian/Fedora only
-3. **Symlink paths:** Use `$DOTFILES_DIR`, never hardcode
-4. **Git config:** Generated dynamically by `configure_git()`, not symlinked
-5. **Plugin managers:** TPM for tmux, lazy.nvim for Neovim (lock: `nvim/lazy-lock.json`)
-
-## After Every Change
-
-1. Run Docker tests (see top)
-2. Update this file if structure/behavior changed
+2. Add flag to globals section (`INSTALL_FEATURE=false`)
+3. Add prompt in `collect_choices()`
+4. Handle all platforms (brew/apt/dnf/pacman)
+5. Check if already installed before installing
+6. Run Docker tests on both Debian and Fedora
+7. Update this file if structure/behavior changed
