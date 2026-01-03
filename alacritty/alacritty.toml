@@ -1,4 +1,5 @@
-import = ["/home/fishnak/.config/alacritty/catppuccin-mocha.toml"]
+[general]
+import = ["~/.config/alacritty/catppuccin-mocha.toml"]
 
 [cursor.style]
 blinking = "Off"
@@ -9,20 +10,20 @@ shape = "Beam"
 size = 13
 
 [font.bold]
-family = "JetBrains Mono Nerd Font"
+family = "JetBrainsMono Nerd Font Mono"
 style = "Bold"
 
 [font.bold_italic]
-family = "JetBrains Mono Nerd Font"
-style = "BoldItalic"
+family = "JetBrainsMono Nerd Font Mono"
+style = "Bold Italic"
 
 [font.italic]
-family = "JetBrains Mono Nerd Font"
-style = "MediumItalic"
+family = "JetBrainsMono Nerd Font Mono"
+style = "Italic"
 
 [font.normal]
-family = "JetBrains Mono Nerd Font"
-style = "Medium"
+family = "JetBrainsMono Nerd Font Mono"
+style = "Regular"
 
 [[keyboard.bindings]]
 action = "SpawnNewInstance"
@@ -32,6 +33,9 @@ mods = "Super|Shift"
 [scrolling]
 history = 10000
 multiplier = 3
+
+[window]
+option_as_alt = "Both"
 
 [window.class]
 general = "Alacritty"

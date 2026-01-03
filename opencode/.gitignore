@@ -1,0 +1,6 @@
+node_modules
+package.json
+bun.lock
+
+# Sensitive - contains OAuth refresh tokens
+antigravity-accounts.json

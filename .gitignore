@@ -1,5 +1,29 @@
+# Credentials (NEVER commit)
 .git-credentials
 .ssh/keys/*
 !.ssh/keys/*.pub
+
+# Tmux plugins (managed by TPM)
 tmux/plugins/*
 !tmux/plugins/tpm
+
+# Cloud/tool credentials
+gcloud/
+github-copilot/
+uv/
+yarn/
+
+# Cache and temp files
+*.db
+*.json.bak
+.DS_Store
+*~
+*.swp
+
+# Platform-specific configs not in use
+fish/
+mpv/
+
+# Deprecated files (replaced by install.sh)
+setup.sh
+getNerdFont.sh

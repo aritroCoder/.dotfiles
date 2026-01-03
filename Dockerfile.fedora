@@ -1,0 +1,16 @@
+FROM fedora:latest
+
+RUN dnf install -y \
+    curl \
+    git \
+    sudo \
+    unzip \
+    which \
+    && dnf clean all
+
+WORKDIR /root/.dotfiles
+COPY . .
+
+RUN chmod +x install.sh test-install.sh
+
+CMD ["/bin/bash"]

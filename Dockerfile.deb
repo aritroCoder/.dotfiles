@@ -1,0 +1,18 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV HOME=/root
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    sudo \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /root/.dotfiles
+COPY . .
+
+RUN chmod +x install.sh test-install.sh
+
+CMD ["/bin/bash"]
