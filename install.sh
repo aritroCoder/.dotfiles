@@ -18,6 +18,41 @@ log_warn() { echo -e "${YELLOW}[WARN]${RESET} $1"; }
 log_error() { echo -e "${RED}[ERROR]${RESET} $1"; }
 log_section() { echo -e "\n${BOLD}${GREEN}=== $1 ===${RESET}\n"; }
 
+check_prerequisites() {
+    local missing=()
+    
+    for cmd in git curl unzip; do
+        if ! command -v "$cmd" &>/dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+    
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo -e "${RED}[ERROR]${RESET} Missing required dependencies: ${missing[*]}"
+        echo ""
+        echo "Please install them first:"
+        case "$(uname -s)" in
+            Darwin*)
+                echo "  brew install ${missing[*]}"
+                ;;
+            Linux*)
+                if [[ -f /etc/debian_version ]]; then
+                    echo "  sudo apt update && sudo apt install -y ${missing[*]}"
+                elif [[ -f /etc/fedora-release ]]; then
+                    echo "  sudo dnf install -y ${missing[*]}"
+                elif [[ -f /etc/arch-release ]]; then
+                    echo "  sudo pacman -S ${missing[*]}"
+                else
+                    echo "  Install: ${missing[*]}"
+                fi
+                ;;
+        esac
+        exit 1
+    fi
+}
+
+check_prerequisites
+
 confirm() {
     if command -v gum &>/dev/null; then
         gum confirm "$1"
@@ -263,7 +298,7 @@ create_symlinks() {
         
         log_info "Removing old symlinks/configs..."
         rm -rf ~/.config/nvim ~/.config/tmux ~/.config/alacritty ~/.config/ghostty
-        rm -f ~/.bashrc ~/.zshrc ~/.gitconfig
+        rm -f ~/.bashrc ~/.zshrc
         
         log_info "Creating symlinks..."
         
@@ -272,7 +307,6 @@ create_symlinks() {
         ln -sf "$DOTFILES_DIR/alacritty" ~/.config/alacritty
         ln -sf "$DOTFILES_DIR/ghostty" ~/.config/ghostty
         ln -sf "$DOTFILES_DIR/opencode" ~/.config/opencode
-        ln -sf "$DOTFILES_DIR/.gitconfig" ~/.gitconfig
         
         case "$PLATFORM" in
             macos)
@@ -397,6 +431,157 @@ install_docker() {
     fi
 }
 
+prompt_input() {
+    local prompt_text="$1"
+    local default_value="$2"
+    local result=""
+    
+    if command -v gum &>/dev/null; then
+        result=$(gum input --placeholder "$default_value" --prompt "$prompt_text: ")
+    else
+        echo -en "${BOLD}${YELLOW}$prompt_text${RESET}"
+        if [[ -n "$default_value" ]]; then
+            echo -en " [${default_value}]: "
+        else
+            echo -en ": "
+        fi
+        read -r result
+    fi
+    
+    if [[ -z "$result" && -n "$default_value" ]]; then
+        result="$default_value"
+    fi
+    
+    echo "$result"
+}
+
+configure_git() {
+    if confirm "Configure Git user settings?"; then
+        log_info "Enter your Git configuration:"
+        
+        local git_name
+        local git_email
+        
+        git_name=$(prompt_input "GitHub username" "")
+        while [[ -z "$git_name" ]]; do
+            log_warn "Username cannot be empty"
+            git_name=$(prompt_input "GitHub username" "")
+        done
+        
+        git_email=$(prompt_input "GitHub email" "")
+        while [[ -z "$git_email" ]]; do
+            log_warn "Email cannot be empty"
+            git_email=$(prompt_input "GitHub email" "")
+        done
+        
+        log_info "Creating ~/.gitconfig..."
+        cat > ~/.gitconfig << EOF
+[user]
+	email = $git_email
+	name = $git_name
+[credential]
+	helper = store
+[init]
+	defaultBranch = main
+EOF
+        
+        log_success "Git configured for $git_name <$git_email>"
+    fi
+}
+
+show_ssh_instructions() {
+    log_section "GitHub SSH Authentication Setup"
+    
+    echo -e "${BOLD}To authenticate with GitHub using SSH, follow these steps:${RESET}"
+    echo ""
+    
+    case "$PLATFORM" in
+        macos)
+            echo -e "${BOLD}1. Generate an SSH key:${RESET}"
+            echo "   ssh-keygen -t ed25519 -C \"your_email@example.com\""
+            echo ""
+            echo -e "${BOLD}2. Start the SSH agent and add your key:${RESET}"
+            echo "   eval \"\$(ssh-agent -s)\""
+            echo "   ssh-add --apple-use-keychain ~/.ssh/id_ed25519"
+            echo ""
+            echo -e "${BOLD}3. Add SSH config for Keychain persistence:${RESET}"
+            echo "   Create/edit ~/.ssh/config with:"
+            echo "   Host github.com"
+            echo "       AddKeysToAgent yes"
+            echo "       UseKeychain yes"
+            echo "       IdentityFile ~/.ssh/id_ed25519"
+            echo ""
+            echo -e "${BOLD}4. Copy the public key to clipboard:${RESET}"
+            echo "   pbcopy < ~/.ssh/id_ed25519.pub"
+            echo ""
+            echo -e "${BOLD}5. Add the key to GitHub:${RESET}"
+            echo "   - Go to https://github.com/settings/keys"
+            echo "   - Click 'New SSH key', paste your key, and save"
+            echo ""
+            echo -e "${BOLD}6. Test the connection:${RESET}"
+            echo "   ssh -T git@github.com"
+            ;;
+        linux)
+            echo -e "${BOLD}1. Generate an SSH key:${RESET}"
+            echo "   ssh-keygen -t ed25519 -C \"your_email@example.com\""
+            echo ""
+            echo -e "${BOLD}2. Start the SSH agent and add your key:${RESET}"
+            echo "   eval \"\$(ssh-agent -s)\""
+            echo "   ssh-add ~/.ssh/id_ed25519"
+            echo ""
+            echo -e "${BOLD}3. Copy the public key to clipboard:${RESET}"
+            echo "   # Using xclip:"
+            echo "   xclip -selection clipboard < ~/.ssh/id_ed25519.pub"
+            echo "   # Or using xsel:"
+            echo "   xsel --clipboard < ~/.ssh/id_ed25519.pub"
+            echo "   # Or just print it:"
+            echo "   cat ~/.ssh/id_ed25519.pub"
+            echo ""
+            echo -e "${BOLD}4. Add the key to GitHub:${RESET}"
+            echo "   - Go to https://github.com/settings/keys"
+            echo "   - Click 'New SSH key', paste your key, and save"
+            echo ""
+            echo -e "${BOLD}5. Test the connection:${RESET}"
+            echo "   ssh -T git@github.com"
+            echo ""
+            echo -e "${BOLD}Optional - Auto-start ssh-agent:${RESET}"
+            echo "   Add to your ~/.bashrc or ~/.zshrc:"
+            echo "   eval \"\$(ssh-agent -s)\" > /dev/null 2>&1"
+            echo "   ssh-add ~/.ssh/id_ed25519 2>/dev/null"
+            ;;
+        wsl)
+            echo -e "${BOLD}1. Generate an SSH key:${RESET}"
+            echo "   ssh-keygen -t ed25519 -C \"your_email@example.com\""
+            echo ""
+            echo -e "${BOLD}2. Start the SSH agent and add your key:${RESET}"
+            echo "   eval \"\$(ssh-agent -s)\""
+            echo "   ssh-add ~/.ssh/id_ed25519"
+            echo ""
+            echo -e "${BOLD}3. Copy the public key to clipboard:${RESET}"
+            echo "   # Copy to Windows clipboard:"
+            echo "   cat ~/.ssh/id_ed25519.pub | clip.exe"
+            echo ""
+            echo -e "${BOLD}4. Add the key to GitHub:${RESET}"
+            echo "   - Go to https://github.com/settings/keys"
+            echo "   - Click 'New SSH key', paste your key, and save"
+            echo ""
+            echo -e "${BOLD}5. Test the connection:${RESET}"
+            echo "   ssh -T git@github.com"
+            echo ""
+            echo -e "${BOLD}Optional - Use Windows SSH agent (recommended):${RESET}"
+            echo "   1. Enable OpenSSH Agent in Windows:"
+            echo "      - Open Services (services.msc)"
+            echo "      - Find 'OpenSSH Authentication Agent'"
+            echo "      - Set startup type to 'Automatic' and start it"
+            echo "   2. Configure SSH to use Windows agent in ~/.ssh/config:"
+            echo "      Host github.com"
+            echo "          IdentityFile ~/.ssh/id_ed25519"
+            ;;
+    esac
+    
+    echo ""
+}
+
 install_opencode() {
     if confirm "Install OpenCode and oh-my-opencode?"; then
         if command -v opencode &>/dev/null; then
@@ -451,6 +636,9 @@ main() {
     log_section "Symlinks"
     create_symlinks
     
+    log_section "Git Configuration"
+    configure_git
+    
     log_section "Tmux"
     install_tpm
     
@@ -465,6 +653,8 @@ main() {
     
     log_section "AI Tools"
     install_opencode
+    
+    show_ssh_instructions
     
     log_section "Installation Complete"
     log_success "Dotfiles installed successfully!"

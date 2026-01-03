@@ -26,7 +26,7 @@ test_symlinks() {
     
     mkdir -p ~/.config
     rm -rf ~/.config/nvim ~/.config/tmux ~/.config/alacritty ~/.config/ghostty ~/.config/opencode
-    rm -f ~/.bashrc ~/.zshrc ~/.gitconfig
+    rm -f ~/.bashrc ~/.zshrc
     
     DOTFILES_DIR="/root/.dotfiles"
     ln -sf "$DOTFILES_DIR/nvim" ~/.config/nvim
@@ -36,7 +36,17 @@ test_symlinks() {
     ln -sf "$DOTFILES_DIR/opencode" ~/.config/opencode
     ln -sf "$DOTFILES_DIR/.bashrc" ~/.bashrc
     ln -sf "$DOTFILES_DIR/.zshrc" ~/.zshrc
-    ln -sf "$DOTFILES_DIR/.gitconfig" ~/.gitconfig
+    
+    # Generate gitconfig dynamically (as the installer now does)
+    cat > ~/.gitconfig << EOF
+[user]
+	email = test@example.com
+	name = testuser
+[credential]
+	helper = store
+[init]
+	defaultBranch = main
+EOF
     
     echo ""
     echo "Checking symlinks..."
@@ -92,10 +102,10 @@ test_symlinks() {
         ((errors++))
     fi
     
-    if [[ -L ~/.gitconfig ]]; then
-        echo "[OK] ~/.gitconfig -> $(readlink ~/.gitconfig)"
+    if [[ -f ~/.gitconfig ]] && grep -q "testuser" ~/.gitconfig; then
+        echo "[OK] ~/.gitconfig exists with correct user"
     else
-        echo "[FAIL] ~/.gitconfig not a symlink"
+        echo "[FAIL] ~/.gitconfig missing or has wrong content"
         ((errors++))
     fi
     
