@@ -287,7 +287,8 @@ install_node() {
     log_info "Installing NVM..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
     
-    export NVM_DIR="$HOME/.nvm"
+    export NVM_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/nvm"
+    [[ ! -d "$NVM_DIR" ]] && export NVM_DIR="$HOME/.nvm"
     [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
     
     log_info "Installing latest LTS Node.js..."
