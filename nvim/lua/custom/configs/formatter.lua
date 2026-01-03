@@ -98,9 +98,7 @@ local M = {
             function()
                 return {
                     exe = "gofmt",
-                    args = { "-w", vim.api.nvim_buf_get_name(0) },
-                    stdin = false,
-                    cwd = vim.fn.expand "%:p:h",
+                    stdin = true,
                 }
             end,
         },
@@ -109,9 +107,8 @@ local M = {
             function()
                 return {
                     exe = "black",
-                    args = { vim.api.nvim_buf_get_name(0) },
-                    stdin = false,
-                    cwd = vim.fn.expand "%:p:h",
+                    args = { "-q", "-" },
+                    stdin = true,
                 }
             end,
         },
