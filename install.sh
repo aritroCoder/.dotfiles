@@ -501,19 +501,17 @@ collect_choices() {
     
     if confirm "Configure Git user settings?"; then
         CONFIGURE_GIT=true
-        echo ""
-        log_info "Enter your Git configuration:"
         
-        GIT_USER_NAME=$(prompt_input "GitHub username" "")
+        GIT_USER_NAME=$(prompt_input "Enter your GitHub username" "")
         while [[ -z "$GIT_USER_NAME" ]]; do
             log_warn "Username cannot be empty"
-            GIT_USER_NAME=$(prompt_input "GitHub username" "")
+            GIT_USER_NAME=$(prompt_input "Enter your GitHub username" "")
         done
         
-        GIT_USER_EMAIL=$(prompt_input "GitHub email" "")
+        GIT_USER_EMAIL=$(prompt_input "Enter your GitHub email" "")
         while [[ -z "$GIT_USER_EMAIL" ]]; do
             log_warn "Email cannot be empty"
-            GIT_USER_EMAIL=$(prompt_input "GitHub email" "")
+            GIT_USER_EMAIL=$(prompt_input "Enter your GitHub email" "")
         done
     fi
     
