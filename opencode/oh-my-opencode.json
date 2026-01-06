@@ -9,7 +9,7 @@
       "model": "opencode/glm-4.7-free"
     },
     "oracle": {
-      "model": "github-copilot/gpt-5.1"
+      "model": "github-copilot/gpt-5.2"
     },
     "frontend-ui-ux-engineer": {
       "model": "google/gemini-3-pro-high"
