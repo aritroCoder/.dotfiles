@@ -53,10 +53,28 @@ vim.lsp.config("gopls", {
     },
 })
 
+local function get_python_path()
+    local venv = vim.fn.getcwd() .. "/.venv"
+    if vim.fn.isdirectory(venv) == 1 then
+        return venv .. "/bin/python"
+    end
+    return "python"
+end
+
 vim.lsp.config("pyright", {
     on_attach = on_attach,
     capabilities = capabilities,
     filetypes = { "python" },
+    settings = {
+        python = {
+            pythonPath = get_python_path(),
+            analysis = {
+                autoSearchPaths = true,
+                useLibraryCodeForTypes = true,
+                diagnosticMode = "openFilesOnly",
+            },
+        },
+    },
 })
 
 vim.lsp.enable({ "ts_ls", "clangd", "tailwindcss", "gopls", "pyright" })

@@ -4,3 +4,4 @@ bun.lock
 
 # Sensitive - contains OAuth refresh tokens
 antigravity-accounts.json
+tavily-api-key

@@ -160,5 +160,12 @@
       }
     }
   },
+  "mcp": {
+      "tavily_web_search": {
+          "type": "remote",
+          "url": "https://mcp.tavily.com/mcp/?tavilyApiKey={file:~/.config/opencode/tavily-api-key}",
+          "enabled": true
+      }
+  },
   "$schema": "https://opencode.ai/config.json"
 }

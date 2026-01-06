@@ -62,6 +62,10 @@ local M = {
             require("formatter.filetypes.typescript").prettier,
         },
 
+        json = {
+            require("formatter.filetypes.json").prettier,
+        },
+
         ["*"] = {
             require("formatter.filetypes.any").remove_trailing_whitespace,
         },
@@ -107,7 +111,12 @@ local M = {
             function()
                 return {
                     exe = "black",
-                    args = { "-q", "-" },
+                    args = {
+                        "-q",
+                        "--stdin-filename",
+                        vim.api.nvim_buf_get_name(0),
+                        "-",
+                    },
                     stdin = true,
                 }
             end,
