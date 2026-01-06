@@ -3,7 +3,7 @@
   "google_auth": false,
   "agents": {
     "Sisyphus": {
-      "model": "github-copilot/claude-opus-4.5"
+      "model": "google/claude-opus-4-5-thinking"
     },
     "librarian": {
       "model": "opencode/glm-4.7-free"
